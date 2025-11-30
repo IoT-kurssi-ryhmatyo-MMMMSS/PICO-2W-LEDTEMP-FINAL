@@ -134,35 +134,31 @@ app.post("/api/sensors", (req, res) => {
 app.post("/api/command", (req, res) => {
   const newCmd = req.body;
 
-  // Validate fan_limits command
   if (newCmd.type === "fan_limits") {
-    const minRpm = parseInt(newCmd.min_rpm);
-    const maxRpm = parseInt(newCmd.max_rpm);
+    const minTemp = parseInt(newCmd.min_temp);
+    const maxTemp = parseInt(newCmd.max_temp);
 
-    // Check if values are valid numbers
-    if (isNaN(minRpm) || isNaN(maxRpm)) {
-      return res.status(400).json({ error: "RPM values must be numbers" });
-    }
-
-    // Check range (0-5000 as in your HTML sliders)
-    if (minRpm < 0 || minRpm > 5000 || maxRpm < 0 || maxRpm > 5000) {
+    if (isNaN(minTemp) || isNaN(maxTemp)) {
       return res
         .status(400)
-        .json({ error: "RPM values must be between 0 and 5000" });
+        .json({ error: "Temperature values must be numbers" });
     }
 
-    // Check that min < max
-    if (minRpm >= maxRpm) {
+    if (minTemp < 0 || minTemp > 100 || maxTemp < 0 || maxTemp > 100) {
       return res
         .status(400)
-        .json({ error: "min_rpm must be less than max_rpm" });
+        .json({ error: "Temperature values must be between 0 and 100°C" });
     }
 
-    // Update command with validated values
-    newCmd.min_rpm = minRpm;
-    newCmd.max_rpm = maxRpm;
+    if (minTemp >= maxTemp) {
+      return res
+        .status(400)
+        .json({ error: "min_temp must be less than max_temp" });
+    }
 
-    // Remove any old fan_limits
+    newCmd.min_temp = minTemp;
+    newCmd.max_temp = maxTemp;
+
     commands = commands.filter((cmd) => cmd.type !== "fan_limits");
   }
 

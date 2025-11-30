@@ -9,9 +9,9 @@
 #include <numeric>
 #include <ArduinoJson.h>
 
-const char *ssid = "";
-const char *password = "";
-const char *serverUrl = "";
+const char* ssid = "FRITZ!Box 6690 UA";
+const char* password = "31135659524764098463";
+const char* serverUrl = "https://fbf04876-1d7e-4412-be0f-123ef6bf30a3-00-1d0pb9ugzfrze.spock.replit.dev:3000/api/sensors";
 
 #define DHTPIN 15
 #define DHTTYPE DHT22
@@ -34,8 +34,8 @@ float humidity = 0;
 float led_temp = 0;
 
 // Fan limits from server (and initial hardcoded values)
-int fan_min_rpm = 1000;
-int fan_max_rpm = 3000;
+int fan_min_temp = 20;
+int fan_max_temp = 50;
 
 // Measurement/send interval
 const unsigned long MEASURE_INTERVAL_MS = 5000;
@@ -170,7 +170,7 @@ void loop()
         // Fan RPM range on the right part of line 3
         lcd.setCursor(10, 3);
         char fanBuf[16];
-        snprintf(fanBuf, sizeof(fanBuf), "%d-%d", fan_min_rpm, fan_max_rpm);
+        snprintf(fanBuf, sizeof(fanBuf), "%d-%dC", fan_min_temp, fan_max_temp);
         lcd.print("          ");
         lcd.setCursor(10, 3);
         lcd.print(fanBuf);
@@ -182,9 +182,10 @@ void loop()
         Serial.print(" LED:");
         Serial.print(led_temp);
         Serial.print(" Fan:");
-        Serial.print(fan_min_rpm);
+        Serial.print(fan_min_temp);
         Serial.print("-");
-        Serial.println(fan_max_rpm);
+        Serial.print(fan_max_temp);
+        Serial.println("C");
 
         // Send to server ONLY when sendEnabled is true
         if (sendEnabled && WiFi.status() == WL_CONNECTED)
@@ -225,19 +226,19 @@ void loop()
                             const char *type = cmd["type"] | "";
                             if (strcmp(type, "fan_limits") == 0)
                             {
-                                int min_rpm = cmd["min_rpm"] | fan_min_rpm;
-                                int max_rpm = cmd["max_rpm"] | fan_max_rpm;
+                                int min_temp = cmd["min_temp"] | fan_min_temp;
+                                int max_temp = cmd["max_temp"] | fan_max_temp;
 
-                                // Only update and print if values changed
-                                if (min_rpm != fan_min_rpm || max_rpm != fan_max_rpm)
+                                if (min_temp != fan_min_temp || max_temp != fan_max_temp)
                                 {
-                                    fan_min_rpm = min_rpm;
-                                    fan_max_rpm = max_rpm;
+                                    fan_min_temp = min_temp;
+                                    fan_max_temp = max_temp;
 
                                     Serial.print("Fan limits updated: ");
-                                    Serial.print(fan_min_rpm);
+                                    Serial.print(fan_min_temp);
                                     Serial.print("-");
-                                    Serial.println(fan_max_rpm);
+                                    Serial.print(fan_max_temp);
+                                    Serial.println("C");
                                 }
                             }
                         }
