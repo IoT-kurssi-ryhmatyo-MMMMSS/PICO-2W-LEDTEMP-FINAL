@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Data from sensors</title>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <style>
+      body {
+        font-family: system-ui, Arial, sans-serif;
+        margin: 24px;
+      }
+      #controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      #curve_chart {
+        width: 100%;
+        height: 420px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 16px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background: #f5f5f5;
+      }
+      .muted {
+        color: #666;
+      }
+      .fan-controls {
+        background: #f0f0f0;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .slider-container {
+        margin: 15px 0;
+      }
+      .slider-container label {
+        display: inline-block;
+        width: 150px;
+        font-weight: bold;
+      }
+      .slider-container input[type="range"] {
+        width: 300px;
+      }
+      .value-display {
+        display: inline-block;
+        width: 80px;
+        text-align: right;
+      }
+      .fan-controls button {
+        background: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .fan-controls button:hover {
+        background: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Data from sensors</h1>
+
+    <div class="fan-controls">
+      <h2>Fan Control</h2>
+
+      <div class="slider-container">
+        <label>Minimum RPM:</label>
+        <input
+          type="range"
+          id="minRpm"
+          min="800"
+          max="3000"
+          value="1000"
+          step="100"
+        />
+        <span class="value-display" id="minRpmValue">1000</span> RPM
+      </div>
+
+      <div class="slider-container">
+        <label>Maximum RPM:</label>
+        <input
+          type="range"
+          id="maxRpm"
+          min="800"
+          max="3000"
+          value="3000"
+          step="100"
+        />
+        <span class="value-display" id="maxRpmValue">3000</span> RPM
+      </div>
+
+      <button id="applyFanBtn">Apply Settings</button>
+      <span id="fanStatus" class="muted"></span>
+    </div>
+
+    <div id="controls">
+      <label>
+        <span class="muted">From:</span>
+        <input type="datetime-local" id="fromInput" />
+      </label>
+      <label>
+        <span class="muted">To:</span>
+        <input type="datetime-local" id="toInput" />
+      </label>
+      <label>
+        <span class="muted">Limit:</span>
+        <input type="number" id="limitInput" value="200" min="1" max="10000" />
+      </label>
+      <button id="reloadBtn">Reload</button>
+      <label>
+        <input type="checkbox" id="autoRefresh" checked />
+        <span class="muted">Auto refresh (15s)</span>
+      </label>
+    </div>
+
+    <div id="curve_chart"></div>
+    <div id="output" class="muted"></div>
+
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Date</th>
+          <th>Temperature (°C)</th>
+          <th>Humidity (%)</th>
+          <th>LED Temp (°C)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      const API_BASE = "";
+      const API_URL = `${API_BASE}/api/sensors`;
+      const COMMAND_URL = `${API_BASE}/api/command`;
+
+      google.charts.load("current", { packages: ["corechart"] });
+
+      const fromInput = document.getElementById("fromInput");
+      const toInput = document.getElementById("toInput");
+      const limitInput = document.getElementById("limitInput");
+      const reloadBtn = document.getElementById("reloadBtn");
+      const autoRefresh = document.getElementById("autoRefresh");
+      const tableBody = document.querySelector("#dataTable tbody");
+      const output = document.getElementById("output");
+
+      const minRpmInput = document.getElementById("minRpm");
+      const maxRpmInput = document.getElementById("maxRpm");
+      const minRpmValue = document.getElementById("minRpmValue");
+      const maxRpmValue = document.getElementById("maxRpmValue");
+      const applyFanBtn = document.getElementById("applyFanBtn");
+      const fanStatus = document.getElementById("fanStatus");
+
+      (function presetTimeRange() {
+        const now = new Date();
+        const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        toInput.value = toLocalDatetimeLocal(now);
+        fromInput.value = toLocalDatetimeLocal(sixHoursAgo);
+      })();
+
+      function toLocalDatetimeLocal(d) {
+        const pad = (n) => String(n).padStart(2, "0");
+        const yyyy = d.getFullYear();
+        const mm = pad(d.getMonth() + 1);
+        const dd = pad(d.getDate());
+        const hh = pad(d.getHours());
+        const mi = pad(d.getMinutes());
+        return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+      }
+
+      function datetimeLocalToIso(s) {
+        if (!s) return null;
+        const d = new Date(s);
+        const pad = (n) => String(n).padStart(2, "0");
+        const yyyy = d.getUTCFullYear();
+        const mm = pad(d.getUTCMonth() + 1);
+        const dd = pad(d.getUTCDate());
+        const hh = pad(d.getUTCHours());
+        const mi = pad(d.getUTCMinutes());
+        const ss = pad(d.getUTCSeconds());
+        return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+      }
+
+      async function loadAndRender() {
+        try {
+          const params = new URLSearchParams();
+          const fromStr = datetimeLocalToIso(fromInput.value);
+          const toStr = datetimeLocalToIso(toInput.value);
+          const limit = Number(limitInput.value || 200);
+
+          if (fromStr) params.set("from", fromStr);
+          if (toStr) params.set("to", toStr);
+          params.set("limit", limit);
+
+          const url = `${API_URL}?${params.toString()}`;
+          output.textContent = `Loading ${url} ...`;
+
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const rows = await res.json();
+
+          output.textContent = `Loaded ${rows.length} rows`;
+
+          google.charts.setOnLoadCallback(() => drawChart(rows));
+          renderTable(rows);
+        } catch (err) {
+          console.error(err);
+          output.textContent = `Error: ${err.message}`;
+        }
+      }
+
+      function drawChart(rows) {
+        const chartData = [
+          ["Time", "Temperature (°C)", "Humidity (%)", "LED Temp (°C)"],
+        ];
+        for (const r of rows) {
+          const date = new Date(r.date.replace(" ", "T") + "Z");
+          const t = Number(r.temperature);
+          const h = Number(r.humidity);
+          const lt = Number(r.led_temp);
+          if (!Number.isNaN(t) && !Number.isNaN(h) && !Number.isNaN(lt)) {
+            chartData.push([date, t, h, lt]);
+          }
+        }
+
+        const data = google.visualization.arrayToDataTable(chartData);
+
+        const options = {
+          title: "Temperature, Humidity & LED Temp Over Time",
+          legend: { position: "bottom" },
+          hAxis: { title: "Time", format: "HH:mm" },
+          vAxes: {
+            0: { title: "Temperature (°C)" },
+            1: { title: "Humidity (%)" },
+          },
+          series: {
+            0: { targetAxisIndex: 0 },
+            1: { targetAxisIndex: 1 },
+            2: { targetAxisIndex: 0 },
+          },
+          curveType: "function",
+          width: "100%",
+          height: 420,
+        };
+
+        const chart = new google.visualization.LineChart(
+          document.getElementById("curve_chart"),
+        );
+        chart.draw(data, options);
+      }
+
+      function renderTable(rows) {
+        tableBody.innerHTML = "";
+        for (const r of rows) {
+          const date = new Date(r.date.replace(" ", "T") + "Z");
+          const localDate = date.toLocaleString();
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                  <td>${r.id}</td>
+                  <td>${localDate}</td>
+                  <td>${Number(r.temperature).toFixed(2)}</td>
+                  <td>${Number(r.humidity).toFixed(2)}</td>
+                  <td>${Number(r.led_temp).toFixed(2)}</td>
+              `;
+          tableBody.appendChild(tr);
+        }
+      }
+
+      minRpmInput.oninput = function () {
+        minRpmValue.textContent = this.value;
+      };
+
+      maxRpmInput.oninput = function () {
+        maxRpmValue.textContent = this.value;
+      };
+
+      applyFanBtn.addEventListener("click", async () => {
+        const minRpm = parseInt(minRpmInput.value);
+        const maxRpm = parseInt(maxRpmInput.value);
+
+        fanStatus.textContent = "Sending...";
+
+        try {
+          const res = await fetch(COMMAND_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "fan_limits",
+              min_rpm: minRpm,
+              max_rpm: maxRpm,
+            }),
+          });
+
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+          fanStatus.textContent = "Command sent!";
+          setTimeout(() => {
+            fanStatus.textContent = "";
+          }, 3000);
+        } catch (err) {
+          console.error(err);
+          fanStatus.textContent = `Error: ${err.message}`;
+        }
+      });
+
+      reloadBtn.addEventListener("click", loadAndRender);
+
+      setInterval(() => {
+        if (autoRefresh.checked) loadAndRender();
+      }, 15000);
+
+      loadAndRender();
+    </script>
+  </body>
+</html>
