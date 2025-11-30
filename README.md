@@ -32,7 +32,7 @@ Raspberry Pi Pico 2W firmware that collects sensor data and communicates with th
 - 20x4 I2C LCD display
 - Push button control for sending data
 - WiFi connectivity
-- Fan control via server commands
+- Fan temperature control via server commands
 
 [📖 Read firmware documentation →](./firmware/README.md)
 
@@ -42,7 +42,7 @@ Node.js server with Express and SQLite database for data storage and web interfa
 **Features:**
 - RESTful API for sensor data
 - SQLite database storage
-- Fan control commands
+- Fan temperature control commands
 - Real-time data visualization
 - Web dashboard with charts
 
@@ -80,7 +80,7 @@ Open browser: `http://localhost:3000`
 │  │  LED Temp     │  │      HTTPS POST (sensor data)
 │  │  LCD Display  │  ├──────────────────────────────┐
 │  │  Button       │  │                              │
-│  │  Fan RPM      │◄─┤◄─────────────────────────────┤
+│  │  Fan Temp     │◄─┤◄─────────────────────────────┤
 │  └───────────────┘  │  Response (commands array)   │
 └─────────────────────┘                              ▼
                                             ┌─────────────────┐
@@ -96,7 +96,7 @@ Open browser: `http://localhost:3000`
 ┌─────────────────┐
 │  Web Interface  │
 │  Google Charts  │
-│  Fan Control    │◄─── User sets fan limits (min/max RPM)
+│  Fan Control    │◄─── User sets temperature range (min/max °C)
 └─────────────────┘
          │
          │ POST /api/command
@@ -116,17 +116,17 @@ Open browser: `http://localhost:3000`
    {
      "status": "ok",
      "commands": [
-       { "type": "fan_limits", "min_rpm": 1200, "max_rpm": 2800 }
+       { "type": "fan_limits", "min_temp": 20, "max_temp": 50 }
      ]
    }
 ```
 
-3. **Web → Server:** POST `/api/command` to set fan limits
+3. **Web → Server:** POST `/api/command` to set fan temperature limits
 ```json
-   { "type": "fan_limits", "min_rpm": 1200, "max_rpm": 2800 }
+   { "type": "fan_limits", "min_temp": 20, "max_temp": 50 }
 ```
 
-4. **Pico updates:** Fan RPM range displayed on LCD
+4. **Pico updates:** Fan temperature range displayed on LCD
 
 ## Hardware Requirements
 
@@ -157,7 +157,8 @@ Open browser: `http://localhost:3000`
 - ✅ SQLite database storage
 - ✅ Web dashboard with charts
 - ✅ Historical data viewing
-- ✅ Fan control (RPM limits)
+- ✅ Fan control (temperature range 20-80°C)
+- ✅ Dual range slider for temperature control
 - ✅ Auto-refresh (15s interval)
 - ✅ LCD display for local monitoring
 

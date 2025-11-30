@@ -1,19 +1,20 @@
 # Sensor Data Monitoring System - Backend
 
-Backend server for collecting and visualizing sensor data (temperature, humidity, LED temperature) with fan control functionality.
+Backend server for collecting and visualizing sensor data (temperature, humidity, LED temperature) with fan temperature control functionality.
 
 ## Features
 
 - RESTful API for sensor data storage and retrieval
-- Fan control commands (RPM limits)
+- Fan temperature control commands (temperature range)
 - Time-range filtering for historical data
 - SQLite database for data persistence
 - Static file serving for web interface
 - Auto-refresh dashboard with real-time charts
+- Dual range slider (20-80°C) for fan control
 
 ## Project Structure
 ```
-project/
+backend/
 ├── public/
 │   └── index.html          # Web interface
 ├── index.js                # Main backend server
@@ -32,7 +33,7 @@ project/
 1. Clone the repository:
 ```bash
 git clone https://github.com/your-username/your-repository.git
-cd your-repository
+cd your-repository/backend
 ```
 
 2. Install dependencies:
@@ -88,12 +89,20 @@ Retrieve sensor data with optional filters.
 
 **Query Parameters:**
 - `limit` (optional) - Number of records to return (1-10000, default: 200)
+  - **Note:** `limit` is disabled when date range (`from`/`to`) is specified
 - `from` (optional) - Start date in ISO format (YYYY-MM-DD HH:MM:SS)
 - `to` (optional) - End date in ISO format (YYYY-MM-DD HH:MM:SS)
 
 **Example:**
 ```bash
-curl "http://localhost:3000/api/sensors?limit=100&from=2025-01-01%2000:00:00&to=2025-12-31%2023:59:59"
+# Get last 200 records (default)
+curl "http://localhost:3000/api/sensors"
+
+# Get specific date range
+curl "http://localhost:3000/api/sensors?from=2025-01-01%2000:00:00&to=2025-12-31%2023:59:59"
+
+# Get last 100 records
+curl "http://localhost:3000/api/sensors?limit=100"
 ```
 
 **Response:**
@@ -125,26 +134,32 @@ Add new sensor reading.
 ```json
 {
   "status": "ok",
-  "commands": []
+  "commands": [
+    {
+      "type": "fan_limits",
+      "min_temp": 20,
+      "max_temp": 50
+    }
+  ]
 }
 ```
 
 ### POST /api/command
-Send fan control command.
+Send fan temperature control command.
 
 **Body:**
 ```json
 {
   "type": "fan_limits",
-  "min_rpm": 1000,
-  "max_rpm": 2500
+  "min_temp": 20,
+  "max_temp": 50
 }
 ```
 
 **Validation:**
-- RPM values must be numbers
-- RPM values must be between 0 and 5000
-- min_rpm must be less than max_rpm
+- Temperature values must be integers
+- Temperature values must be between 0 and 100°C
+- min_temp must be less than max_temp
 
 **Response:**
 ```json
@@ -185,10 +200,11 @@ CREATE TABLE sensors (
 ## Web Interface Features
 
 - **Real-time Visualization** - Google Charts for temperature, humidity, and LED temperature
-- **Time Range Selection** - Filter data by custom date ranges (default: last 6 hours)
-- **Fan Control Panel** - Adjust minimum and maximum RPM with sliders (800-3000 RPM)
+- **Time Range Selection** - Filter data by custom date ranges (empty by default to show last 200 records)
+- **Intelligent Limit Control** - Limit field disabled when date range is selected
+- **Fan Temperature Control** - Dual range slider (20-80°C) with visual feedback
 - **Auto-refresh** - Updates every 15 seconds (can be toggled)
-- **Data Table** - Detailed view of all sensor readings
+- **Data Table** - Detailed view of all sensor readings with local timezone
 
 ## Troubleshooting
 
@@ -206,3 +222,6 @@ The server serves static files from the `public` folder, so no CORS configuratio
 
 ### Module not found errors
 Make sure you've run `npm install` and that the `"type": "module"` is present in `package.json` (required for ES6 imports).
+
+### No data showing after refresh
+Ensure the date range fields (`From`/`To`) are empty to show all data. If set, only data within that range will display.

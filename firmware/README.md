@@ -1,6 +1,6 @@
 # Sensor Data Monitoring System - Firmware (Raspberry Pi Pico 2W)
 
-Firmware for Raspberry Pi Pico 2W that collects sensor data (DHT22 temperature/humidity, LED temperature) and sends it to the backend server. Includes LCD display and fan control via server commands.
+Firmware for Raspberry Pi Pico 2W that collects sensor data (DHT22 temperature/humidity, LED temperature) and sends it to the backend server. Includes LCD display and fan temperature control via server commands.
 
 ## Hardware Requirements
 
@@ -40,11 +40,12 @@ firmware/
 
 - **WiFi connectivity** - Connects to your WiFi network
 - **Sensor readings** - DHT22 (temp/humidity) + LED temperature sensor
-- **LCD display** - Shows real-time sensor data and fan RPM range
+- **LCD display** - Shows real-time sensor data and fan temperature range
 - **Push button control** - Toggle data sending ON/OFF
 - **Server communication** - Sends data to backend every 5 seconds
-- **Fan control** - Receives and displays fan RPM limits from server
+- **Fan temperature control** - Receives and displays fan temperature limits from server
 - **Noise filtering** - ADC readings filtered with median algorithm
+- **NaN protection** - Validates DHT22 readings before sending
 
 ## Prerequisites
 
@@ -77,6 +78,8 @@ const char *ssid = "YOUR_WIFI_SSID";
 const char *password = "YOUR_WIFI_PASSWORD";
 const char *serverUrl = "https://your-server.com/api/sensors";
 ```
+
+**Important:** Keep credentials private! Consider creating `config.h` for sensitive data.
 
 ### 4. Build and Upload
 
@@ -124,12 +127,12 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); // Change 0x27 to your address
 
 Find your LCD address with an I2C scanner sketch.
 
-### Fan RPM Defaults
+### Fan Temperature Defaults
 
-Initial fan RPM limits (before server updates):
+Initial fan temperature limits (before server updates):
 ```cpp
-int fan_min_rpm = 1000;
-int fan_max_rpm = 3000;
+int fan_min_temp = 20;  // °C
+int fan_max_temp = 50;  // °C
 ```
 
 ### LED Temperature Calibration
@@ -145,7 +148,7 @@ led_temp = -500.0f * voltage + 828.0f;
 │Temp:  22.5 C         │  Line 0: Temperature from DHT22
 │ Hum:  55.0 %         │  Line 1: Humidity from DHT22
 │ LED:  23.1 C         │  Line 2: LED temperature
-│Send:OFF    1000-3000 │  Line 3: Send status + Fan RPM range
+│Send:OFF      20-50C  │  Line 3: Send status + Fan temp range
 └──────────────────────┘
 ```
 
@@ -166,9 +169,9 @@ led_temp = -500.0f * voltage + 828.0f;
 
 ### Serial Monitor Output
 ```
-T:22.5 H:55.0 LED:23.1 Fan:1000-3000
+T:22.5 H:55.0 LED:23.1 Fan:20-50C
 HTTP: 201
-Fan limits updated: 1200-2800
+Fan limits updated: 25-60C
 ```
 
 ## Server Communication
@@ -186,15 +189,15 @@ The firmware sends JSON data:
 
 ### Server Response Format
 
-The server should respond with:
+The server responds with:
 ```json
 {
   "status": "ok",
   "commands": [
     {
       "type": "fan_limits",
-      "min_rpm": 1200,
-      "max_rpm": 2800
+      "min_temp": 20,
+      "max_temp": 50
     }
   ]
 }
@@ -209,24 +212,26 @@ The server should respond with:
 
 ### LCD Not Working
 - Check I2C address (try 0x3F if 0x27 doesn't work)
-- Verify SDA/SCL connections
+- Verify SDA/SCL connections (GPIO 0/1)
 - Check power supply (3.3V or 5V depending on LCD module)
 
 ### DHT22 Reading NaN
-- Check DHT22 wiring (VCC, GND, Data)
+- Check DHT22 wiring (VCC, GND, Data to GPIO15)
 - Add 10kΩ pull-up resistor between Data and VCC
 - Wait 2 seconds after power-on for sensor to stabilize
+- Firmware will skip sending if NaN detected
 
 ### Server Communication Fails
-- Verify server URL is correct
+- Verify server URL is correct (remove port if using Replit)
 - Check server is running and accessible
 - Test with curl from another device
-- Check SSL/HTTPS certificate (using `setInsecure()`)
+- Verify SSL/HTTPS certificate (using `setInsecure()`)
 
 ### Upload Fails
 - Hold BOOTSEL button while connecting USB
 - Check USB cable supports data transfer
 - Try different USB port
+- Ensure no other program is using the serial port
 
 ## Platform Information
 

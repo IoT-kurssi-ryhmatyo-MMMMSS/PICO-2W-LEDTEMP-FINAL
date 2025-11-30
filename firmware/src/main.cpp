@@ -9,9 +9,9 @@
 #include <numeric>
 #include <ArduinoJson.h>
 
-const char* ssid = "FRITZ!Box 6690 UA";
-const char* password = "31135659524764098463";
-const char* serverUrl = "https://fbf04876-1d7e-4412-be0f-123ef6bf30a3-00-1d0pb9ugzfrze.spock.replit.dev:3000/api/sensors";
+const char* ssid = "";
+const char* password = "";
+const char* serverUrl = "";
 
 #define DHTPIN 15
 #define DHTTYPE DHT22
