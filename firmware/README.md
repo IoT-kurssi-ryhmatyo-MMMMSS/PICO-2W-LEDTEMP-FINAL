@@ -6,25 +6,29 @@ Firmware for Raspberry Pi Pico 2W that collects sensor data (DHT22 temperature/h
 
 - **Raspberry Pi Pico 2W** (RP2350 with WiFi)
 - **DHT22** temperature and humidity sensor
-- **20x4 I2C LCD Display** (address 0x27)
+- **20x4 I2C LCD Display** (address 0x27) or **128x64 OLED Display** (address 0x3C)
 - **LED temperature sensor** (analog, connected to ADC)
-- **Push button** (GPIO16)
+- **Push button** (GPIO19)
 - **Breadboard and wiring**
+- **5V/12V 4-Pin Fan and external power source**
 
 ## Pin Configuration
 ```
 DHT22 Sensor:
 ├── Data Pin → GPIO 15
 
-LCD I2C Display:
+LCD/OLED I2C Display:
 ├── SDA → GPIO 0
 ├── SCL → GPIO 1
 
 LED Temperature Sensor:
-├── Analog Output → GPIO 26 (ADC0)
+├── Analog Output → GPIO 28 (ADC2)
 
 Button:
-├── Signal → GPIO 16 (with internal pull-up)
+├── Signal → GPIO 19 (with internal pull-up)
+
+Fan:
+├── PWM Control → GPIO 16
 ```
 
 ## Project Structure
@@ -33,6 +37,8 @@ firmware/
 ├── src/
 │   └── main.cpp           # Main firmware code
 ├── platformio.ini         # PlatformIO configuration
+├── config.h               # Configuration file for sensitive data
+├── .clang-format          # Clang format configuration
 └── README.md
 ```
 
@@ -40,12 +46,11 @@ firmware/
 
 - **WiFi connectivity** - Connects to your WiFi network
 - **Sensor readings** - DHT22 (temp/humidity) + LED temperature sensor
-- **LCD display** - Shows real-time sensor data and fan temperature range
+- **LCD/OLED display** - Shows real-time sensor data and fan temperature range
 - **Push button control** - Toggle data sending ON/OFF
 - **Server communication** - Sends data to backend every 5 seconds
 - **Fan temperature control** - Receives and displays fan temperature limits from server
 - **Noise filtering** - ADC readings filtered with median algorithm
-- **NaN protection** - Validates DHT22 readings before sending
 
 ## Prerequisites
 
@@ -66,20 +71,20 @@ pip install platformio
 
 ### 2. Clone and Configure
 ```bash
-git clone https://github.com/your-username/your-repository.git
+git clone https://github.com/IoT-kurssi-ryhmatyo-MMMMSS/PICO-2W-LEDTEMP-FINAL.git
 cd your-repository/firmware
 ```
 
 ### 3. Configure WiFi and Server
 
-Edit `src/main.cpp` and set your credentials:
+Rename `src/config.example.h` to `src/config.h` and set your credentials:
 ```cpp
 const char *ssid = "YOUR_WIFI_SSID";
 const char *password = "YOUR_WIFI_PASSWORD";
 const char *serverUrl = "https://your-server.com/api/sensors";
 ```
 
-**Important:** Keep credentials private! Consider creating `config.h` for sensitive data.
+**Important:** Keep credentials private!
 
 ### 4. Build and Upload
 
@@ -107,6 +112,7 @@ adafruit/DHT sensor library          # DHT22 sensor support
 adafruit/Adafruit Unified Sensor     # Sensor abstraction layer
 marcoschwartz/LiquidCrystal_I2C      # I2C LCD display driver
 bblanchon/ArduinoJson @ ^7.0.0       # JSON parsing for server responses
+git@github.com:durydevelop/arduino-lib-oled.git
 ```
 
 ## Configuration
@@ -120,12 +126,13 @@ const unsigned long MEASURE_INTERVAL_MS = 5000; // milliseconds
 
 ### LCD I2C Address
 
-If your LCD has a different I2C address, modify:
+If your display has a different I2C address, modify:
 ```cpp
 LiquidCrystal_I2C lcd(0x27, 20, 4); // Change 0x27 to your address
+OLED display(0, 1, NO_RESET_PIN, OLED::W_128, OLED::H_64, OLED::CTRL_SH1106, 0x3C);  // Change 0x3C to your address
 ```
 
-Find your LCD address with an I2C scanner sketch.
+Find your display address with an I2C scanner sketch.
 
 ### Fan Temperature Defaults
 
@@ -139,8 +146,20 @@ int fan_max_temp = 50;  // °C
 
 Adjust the temperature calculation formula if needed:
 ```cpp
-led_temp = -500.0f * voltage + 828.0f;
+LED_CALIBRATION_TEMP = 24.6f;
+LED_CALIBRATION_VOLTAGE = 1.7221454f;
+LED_COEFFICIENT = -0.001876f;
 ```
+
+To calculate LED_COEFFICIENT:  
+1. Get LED voltage at room temperature (e.g 25°C)
+2. Gather LED voltage and temperature at various data points.
+3. Plot them with Voltage on the x-axis and Temperature on the y-axis, and fit a trendline.  
+4. Divide 1 by the slope of the trendline.
+
+e.g if slope is -533.05 then LED_COEFFICIENT = 1 / -533.05 = -0.001876
+
+If temperatures are off at higher temperatures, adjust LED_COEFFICIENT accordingly.
 
 ## LCD Display Layout
 ```
@@ -149,6 +168,18 @@ led_temp = -500.0f * voltage + 828.0f;
 │ Hum:  55.0 %         │  Line 1: Humidity from DHT22
 │ LED:  23.1 C         │  Line 2: LED temperature
 │Send:OFF      20-50C  │  Line 3: Send status + Fan temp range
+└──────────────────────┘
+```
+
+## OLED Display Layout
+```
+┌──────────────────────┐
+│Temp:  22.5 C         │  Line 0: Temperature from DHT22
+│ Hum:  55.0 %         │  Line 1: Humidity from DHT22
+│ LED:  23.1 C         │  Line 2: LED temperature
+│ Fan:  20.0 %         │  Line 3: Fan speed
+│ V:  1.7255 V         │  Line 4: LED voltage
+│Send:OFF      20-50C  │  Line 5: Send status + Fan temp range
 └──────────────────────┘
 ```
 
@@ -169,7 +200,7 @@ led_temp = -500.0f * voltage + 828.0f;
 
 ### Serial Monitor Output
 ```
-T:22.5 H:55.0 LED:23.1 Fan:20-50C
+T:22.60 H:40.90 LED:22.79 Fan:27% V:1.7255 Range: 20-50C
 HTTP: 201
 Fan limits updated: 25-60C
 ```
@@ -210,7 +241,7 @@ The server responds with:
 - Verify 2.4GHz network (Pico 2W doesn't support 5GHz)
 - Move closer to router
 
-### LCD Not Working
+### Display Not Working
 - Check I2C address (try 0x3F if 0x27 doesn't work)
 - Verify SDA/SCL connections (GPIO 0/1)
 - Check power supply (3.3V or 5V depending on LCD module)
@@ -219,7 +250,6 @@ The server responds with:
 - Check DHT22 wiring (VCC, GND, Data to GPIO15)
 - Add 10kΩ pull-up resistor between Data and VCC
 - Wait 2 seconds after power-on for sensor to stabilize
-- Firmware will skip sending if NaN detected
 
 ### Server Communication Fails
 - Verify server URL is correct (remove port if using Replit)

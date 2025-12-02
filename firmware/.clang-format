@@ -1,0 +1,18 @@
+BasedOnStyle: LLVM
+
+ColumnLimit: 135
+
+AccessModifierOffset: -4
+IndentWidth: 4
+UseTab: Never
+
+AlignEscapedNewlines: Left
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
+BreakTemplateDeclarations: Yes
+BreakConstructorInitializers: AfterColon
+IndentPPDirectives: BeforeHash
+PointerAlignment: Left
+BreakBeforeBraces: Custom
+BraceWrapping:
+  BeforeElse: true
