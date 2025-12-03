@@ -5,8 +5,6 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
-#include <algorithm>
-#include <numeric>
 
 extern "C" {
 #include "hardware/gpio.h"
@@ -115,7 +113,8 @@ void measureLedTemp() {
 void updateDisplay(uint8_t fan_speed) {
 #ifdef USE_OLED
     char buf[16];
-    display.draw_rectangle(50, 0, 127, 50, OLED::SOLID, OLED::BLACK);
+    display.draw_rectangle(40, 0, 127, 50, OLED::SOLID, OLED::BLACK);
+    display.draw_rectangle(85, 50, 127, 60, OLED::SOLID, OLED::BLACK);
     if (dht_error) {
         display.draw_string(50, 0, "DHT ERR");
     }
@@ -171,7 +170,8 @@ void sendData(uint8_t fan_speed) {
         }
     }
     if (sendEnabled && WiFi.status() == WL_CONNECTED) {
-        WiFiClient client;
+        WiFiClientSecure client;
+        client.setInsecure();
         HTTPClient http;
         http.begin(client, serverUrl);
         http.addHeader("Content-Type", "application/json");
@@ -375,6 +375,10 @@ void loop() {
         Serial.print(fan_max_temp);
         Serial.println("C");
 
-        sendData(fan_speed);
+        if (!buttonInterruptFlag) {
+            sendData(fan_speed);
+        } else {
+            Serial.println("Skipping sendData due to interrupt.");
+        }
     }
 }

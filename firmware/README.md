@@ -242,7 +242,7 @@ The server responds with:
 - Move closer to router
 
 ### Display Not Working
-- Check I2C address (try 0x3F if 0x27 doesn't work)
+- Check I2C address (try 0x3F or 0x3C if 0x27 doesn't work)
 - Verify SDA/SCL connections (GPIO 0/1)
 - Check power supply (3.3V or 5V depending on LCD module)
 
@@ -256,6 +256,7 @@ The server responds with:
 - Check server is running and accessible
 - Test with curl from another device
 - Verify SSL/HTTPS certificate (using `setInsecure()`)
+- Try WiFiClient instead of WiFiClientSecure for non-HTTPS
 
 ### Upload Fails
 - Hold BOOTSEL button while connecting USB
