@@ -82,7 +82,7 @@ app.get("/api/sensors", (req, res) => {
     SELECT id, temperature, humidity, led_temp, date
     FROM sensors
     ${whereSql}
-    ORDER BY datetime(date) ASC
+    ORDER BY datetime(date) DESC
     LIMIT ?
   `;
 
