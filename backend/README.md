@@ -45,6 +45,8 @@ This will install:
 - `express` (v5.1.0) - Web framework
 - `sqlite3` (v5.1.7) - SQLite database driver
 - `@types/node` (v22.13.11) - TypeScript type definitions for Node.js
+- `supertest` (v7.1.4) - HTTP assertions for testing
+- `morgan` (v1.10.1) - HTTP request logger middleware
 
 ## Configuration
 
@@ -57,29 +59,16 @@ PORT=8080 node index.js
 
 Start the server:
 ```bash
-node index.js
+npm start
 ```
 
 The server will start on `http://localhost:3000`.
 
 Open your browser and navigate to `http://localhost:3000` to access the web interface.
 
-For development with auto-restart, you can install nodemon:
+For development with auto-restart, run with --watch:
 ```bash
-npm install --save-dev nodemon
-```
-
-Then add to your `package.json` scripts:
-```json
-"scripts": {
-  "start": "node index.js",
-  "dev": "nodemon index.js"
-}
-```
-
-And run:
-```bash
-npm run dev
+npm run start:dev
 ```
 
 ## API Endpoints
@@ -244,6 +233,7 @@ Connected to in-memory SQLite database for testing
 
 Run from the `backend/e2e` directory:
 ```bash
+npm install
 npm run test
 ```
 This runs your Playwright E2E browser tests for the web interface.
