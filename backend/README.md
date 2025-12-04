@@ -206,6 +206,82 @@ CREATE TABLE sensors (
 - **Auto-refresh** - Updates every 15 seconds (can be toggled)
 - **Data Table** - Detailed view of all sensor readings with local timezone
 
+
+## Running Tests
+
+### Backend tests
+
+Run from the `backend` directory:
+```bash
+npm test
+```
+This runs your Node.js API tests (using node:test and supertest).
+
+Example output:
+```
+Connected to in-memory SQLite database for testing
+▶ API Endpoints
+  ✔ GET /api/sensors/test returns test data (13.6694ms)
+  ✔ POST /api/sensors with valid data (9.2386ms)
+  ✔ POST /api/sensors with missing data returns 400 (5.441ms)
+  ✔ GET /api/sensors returns sensor data (3.4095ms)
+  ✔ GET /api/sensors returns correct amount of sensor data (9.6657ms)
+  ✔ POST /api/command with valid fan_limits (2.5522ms)
+  ✔ POST /api/command with invalid fan_limits returns 400 (2.4567ms)
+  ✔ POST /api/sensors returns just sent fan limits in commands (3.5242ms)
+✔ API Endpoints (50.625ms)
+ℹ tests 8
+ℹ suites 1
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 207.9523
+```
+
+### End-to-End (E2E) tests
+
+Run from the `backend/e2e` directory:
+```bash
+npm run test
+```
+This runs your Playwright E2E browser tests for the web interface.
+
+To run Playwright tests with interactive UI:
+```bash
+npm run test:ui
+```
+
+Example output:
+```
+Running 15 tests using 8 workers
+
+  ✓   1 [chromium] › tests\index.spec.js:25:5 › data table is present (993ms)
+  ✓   2 [firefox] › tests\index.spec.js:16:5 › page has correct title (1.3s)
+  ✓   3 [firefox] › tests\index.spec.js:25:5 › data table is present (1.1s)
+  ✓   4 [chromium] › tests\index.spec.js:48:5 › auto refresh checkbox toggles (1.3s)
+  ✓   5 [chromium] › tests\index.spec.js:16:5 › page has correct title (856ms)
+  ✓   6 [firefox] › tests\index.spec.js:20:5 › chart is visible (1.1s)
+  ✓   7 [chromium] › tests\index.spec.js:20:5 › chart is visible (927ms)
+  ✓   8 [chromium] › tests\index.spec.js:32:5 › fan control sliders and button work (1.2s)
+  ✓   9 [firefox] › tests\index.spec.js:32:5 › fan control sliders and button work (1.4s)
+  ✓  10 [firefox] › tests\index.spec.js:48:5 › auto refresh checkbox toggles (1.3s)
+  ✓  11 [webkit] › tests\index.spec.js:16:5 › page has correct title (786ms)
+  ✓  12 [webkit] › tests\index.spec.js:20:5 › chart is visible (776ms)
+  ✓  13 [webkit] › tests\index.spec.js:25:5 › data table is present (800ms)
+  ✓  14 [webkit] › tests\index.spec.js:32:5 › fan control sliders and button work (995ms)
+  ✓  15 [webkit] › tests\index.spec.js:48:5 › auto refresh checkbox toggles (900ms)
+
+  15 passed (6.0s)
+```
+
+To view the Playwright HTML report after running tests:
+```bash
+npm run test:report
+```
+
+
 ## Troubleshooting
 
 ### Database not created

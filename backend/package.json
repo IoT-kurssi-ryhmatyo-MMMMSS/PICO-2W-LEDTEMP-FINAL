@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:test": "node --env-file=test.env index.js",
+    "start:dev": "node --watch index.js",
+    "test": "node --env-file=test.env --test"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +17,10 @@
     "@types/node": "^22.13.11",
     "express": "^5.1.0",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "morgan": "^1.10.1",
+    "morgana": "^2.0.0",
+    "supertest": "^7.1.4"
   }
 }

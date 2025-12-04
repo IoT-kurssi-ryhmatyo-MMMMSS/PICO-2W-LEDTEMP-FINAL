@@ -29,7 +29,7 @@ Raspberry Pi Pico 2W firmware that collects sensor data and communicates with th
 **Features:**
 - DHT22 temperature and humidity sensor
 - LED temperature sensor (ADC)
-- 20x4 I2C LCD display
+- 20x4 I2C LCD display or 128x64 I2C OLED display
 - Push button control for sending data
 - WiFi connectivity
 - Fan temperature control via server commands
@@ -45,6 +45,7 @@ Node.js server with Express and SQLite database for data storage and web interfa
 - Fan temperature control commands
 - Real-time data visualization
 - Web dashboard with charts
+- Backend and E2E tests
 
 [📖 Read backend documentation →](./backend/README.md)
 
@@ -132,7 +133,7 @@ Open browser: `http://localhost:3000`
 
 - Raspberry Pi Pico 2W (RP2350)
 - DHT22 temperature/humidity sensor
-- 20x4 I2C LCD display
+- 20x4 I2C LCD display or 128x64 I2C OLED display
 - LED temperature sensor (analog)
 - Push button
 - Breadboard and wiring
@@ -140,7 +141,7 @@ Open browser: `http://localhost:3000`
 ## Software Requirements
 
 **Backend:**
-- Node.js 14.x or higher
+- Node.js 20.x or higher
 - npm
 
 **Firmware:**

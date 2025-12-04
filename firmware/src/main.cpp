@@ -113,7 +113,7 @@ void measureLedTemp() {
 void updateDisplay(uint8_t fan_speed) {
 #ifdef USE_OLED
     char buf[16];
-    display.draw_rectangle(40, 0, 127, 50, OLED::SOLID, OLED::BLACK);
+    display.draw_rectangle(40, 0, 127, 49, OLED::SOLID, OLED::BLACK);
     display.draw_rectangle(85, 50, 127, 60, OLED::SOLID, OLED::BLACK);
     if (dht_error) {
         display.draw_string(50, 0, "DHT ERR");
@@ -233,8 +233,12 @@ void setup() {
 // LCD/OLED
 #ifdef USE_OLED
     display.begin();
-    display.drawString(5, 5, "WiFi...");
     display.useOffset();
+    display.drawString(5, 5, "WiFi...");
+    #ifdef USE_SHARK
+        display.clear();
+        display.draw_bitmap(0, 0, 128, 64, shark);
+    #endif
     display.display();
 #else
     Wire.setSDA(0);
