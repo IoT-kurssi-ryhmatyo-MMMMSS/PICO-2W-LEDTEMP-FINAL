@@ -1,7 +1,7 @@
 import express from "express";
 import sqlite3 from "sqlite3";
 import path from "path";
-import { fileURLToPath } from "url";
+import {fileURLToPath} from "url";
 import morgan from "morgan";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -64,15 +64,15 @@ app.get("/api/sensors/test", (req, res) => {
 if (process.env.NODE_ENV === "test") {
   app.post("/api/sensors/reset", (req, res) => {
     db.run("DELETE FROM sensors", (err) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return res.status(500).json({error: err.message});
       commands = [];
-      res.json({ status: "ok" });
+      res.json({status: "ok"});
     });
   });
 }
 
 app.get("/api/sensors", (req, res) => {
-  let { limit = 200, from, to } = req.query;
+  let {limit = 200, from, to} = req.query;
 
   limit = Math.min(Math.max(parseInt(limit) || 200, 1), 10000);
 
@@ -82,14 +82,14 @@ app.get("/api/sensors", (req, res) => {
   if (from) {
     const fromTime = new Date(from).getTime();
     if (isNaN(fromTime) || fromTime < MIN_DATE || fromTime > MAX_DATE) {
-      return res.status(400).json({ error: "Invalid 'from' date" });
+      return res.status(400).json({error: "Invalid 'from' date"});
     }
   }
 
   if (to) {
     const toTime = new Date(to).getTime();
     if (isNaN(toTime) || toTime < MIN_DATE || toTime > MAX_DATE) {
-      return res.status(400).json({ error: "Invalid 'to' date" });
+      return res.status(400).json({error: "Invalid 'to' date"});
     }
   }
 
@@ -108,25 +108,31 @@ app.get("/api/sensors", (req, res) => {
 
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
+  // Apply limit only if NOT both dates are specified
+  const hasFullRange = from && to;
+  const limitSql = hasFullRange ? "" : "LIMIT ?";
+
   const sql = `
     SELECT id, temperature, humidity, led_temp, date
     FROM sensors
     ${whereSql}
     ORDER BY datetime(date) DESC
-    LIMIT ?
+    ${limitSql}
   `;
 
-  params.push(limit);
+  if (!hasFullRange) {
+    params.push(limit);
+  }
 
   db.all(sql, params, (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) return res.status(500).json({error: err.message});
     res.json(rows);
   });
 });
 
 app.post("/api/sensors", (req, res) => {
   //console.log("Received body:", req.body);
-  const { led_temp, temperature, humidity } = req.body;
+  const {led_temp, temperature, humidity} = req.body;
 
   if (
     led_temp === undefined ||
@@ -135,7 +141,7 @@ app.post("/api/sensors", (req, res) => {
   ) {
     return res
       .status(400)
-      .json({ error: "Temperature and humidity are required" });
+      .json({error: "Temperature and humidity are required"});
   }
 
   const t = Number(temperature);
@@ -145,14 +151,14 @@ app.post("/api/sensors", (req, res) => {
   if (Number.isNaN(t) || Number.isNaN(h) || Number.isNaN(lt)) {
     return res
       .status(400)
-      .json({ error: "Temperature and humidity must be numbers" });
+      .json({error: "Temperature and humidity must be numbers"});
   }
 
   const sql =
     "INSERT INTO sensors (temperature, humidity, led_temp) VALUES (?, ?, ?)";
 
-  db.run(sql, [t, h, lt], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
+  db.run(sql, [t, h, lt], function(err) {
+    if (err) return res.status(500).json({error: err.message});
 
     res.status(201).json({
       status: "ok",
@@ -171,19 +177,19 @@ app.post("/api/command", (req, res) => {
     if (isNaN(minTemp) || isNaN(maxTemp)) {
       return res
         .status(400)
-        .json({ error: "Temperature values must be numbers" });
+        .json({error: "Temperature values must be numbers"});
     }
 
     if (minTemp < 0 || minTemp > 100 || maxTemp < 0 || maxTemp > 100) {
       return res
         .status(400)
-        .json({ error: "Temperature values must be between 0 and 100°C" });
+        .json({error: "Temperature values must be between 0 and 100°C"});
     }
 
     if (minTemp >= maxTemp) {
       return res
         .status(400)
-        .json({ error: "min_temp must be less than max_temp" });
+        .json({error: "min_temp must be less than max_temp"});
     }
 
     newCmd.min_temp = minTemp;
@@ -196,7 +202,7 @@ app.post("/api/command", (req, res) => {
   if (process.env.NODE_ENV !== "test") {
     console.log("Command added:", newCmd);
   }
-  res.json({ ok: true });
+  res.json({ok: true});
 });
 
-export { app };
+export {app};
