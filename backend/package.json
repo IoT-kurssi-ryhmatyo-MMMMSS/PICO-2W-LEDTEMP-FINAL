@@ -11,7 +11,8 @@
     "test": "node --env-file=test.env --test",
     "e2e": "npm --prefix ./e2e run e2e",
     "e2e:ui": "npm --prefix ./e2e run e2e:ui",
-    "e2e:report": "npm --prefix ./e2e run e2e:report"
+    "e2e:report": "npm --prefix ./e2e run e2e:report",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,11 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "morgan": "^1.10.1",
     "supertest": "^7.1.4"
   }

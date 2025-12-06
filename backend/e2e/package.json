@@ -6,13 +6,19 @@
   "scripts": {
     "e2e": "npx playwright test --reporter=list",
     "e2e:report": "npx playwright show-report",
-    "e2e:ui": "npx playwright test --ui --reporter=list"
+    "e2e:ui": "npx playwright test --ui --reporter=list",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "@playwright/test": "^1.57.0",
     "@types/node": "^24.10.1"
   }

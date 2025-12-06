@@ -74,7 +74,7 @@ describe("API Endpoints", () => {
     assert.strictEqual(res.statusCode, 201);
     assert(Array.isArray(res.body.commands));
     const found = res.body.commands.some(
-      cmd =>
+      (cmd) =>
         cmd.type === "fan_limits" &&
         cmd.min_temp === fanLimits.min_temp &&
         cmd.max_temp === fanLimits.max_temp

@@ -196,6 +196,20 @@ CREATE TABLE sensors (
 - **Data Table** - Detailed view of all sensor readings with local timezone
 
 
+## Linting
+Run ESLint to check code quality:
+```bash
+npm run lint
+```
+Run for e2e tests:
+```bash
+npm --prefix ./e2e run lint
+// or
+// cd e2e
+// npm run lint
+```
+
+
 ## Running Tests
 
 ### Backend tests
