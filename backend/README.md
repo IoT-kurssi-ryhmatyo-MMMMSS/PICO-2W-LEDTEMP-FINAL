@@ -231,16 +231,16 @@ Connected to in-memory SQLite database for testing
 
 ### End-to-End (E2E) tests
 
-Run from the `backend/e2e` directory:
+Run from the `backend/e2e` or `backend` directory:
 ```bash
 npm install
-npm run test
+npm run e2e
 ```
 This runs your Playwright E2E browser tests for the web interface.
 
 To run Playwright tests with interactive UI:
 ```bash
-npm run test:ui
+npm run e2e:ui
 ```
 
 Example output:
@@ -268,8 +268,9 @@ Running 15 tests using 8 workers
 
 To view the Playwright HTML report after running tests:
 ```bash
-npm run test:report
+npm run e2e:report
 ```
+![alt text](e2e_report.png)
 
 
 ## Troubleshooting

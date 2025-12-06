@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx playwright test --reporter=list",
-    "test:report": "npx playwright show-report",
-    "test:ui": "npx playwright test --ui --reporter=list"
+    "e2e": "npx playwright test --reporter=list",
+    "e2e:report": "npx playwright show-report",
+    "e2e:ui": "npx playwright test --ui --reporter=list"
   },
   "keywords": [],
   "author": "",

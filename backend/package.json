@@ -8,7 +8,10 @@
     "start": "node index.js",
     "start:test": "node --env-file=test.env index.js",
     "start:dev": "node --watch index.js",
-    "test": "node --env-file=test.env --test"
+    "test": "node --env-file=test.env --test",
+    "e2e": "npm --prefix ./e2e run e2e",
+    "e2e:ui": "npm --prefix ./e2e run e2e:ui",
+    "e2e:report": "npm --prefix ./e2e run e2e:report"
   },
   "keywords": [],
   "author": "",
