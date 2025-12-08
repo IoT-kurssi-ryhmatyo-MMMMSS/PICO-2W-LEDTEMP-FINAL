@@ -10,10 +10,17 @@ PICO-2W-LEDTEMP-FINAL/
 ├── README.md                   # This file
 ├── backend/                    # Backend server
 │   ├── README.md              # Backend documentation
-│   ├── index.js
-│   ├── package.json
-│   └── public/
-│       └── index.html
+│   ├── index.js               # Main server file
+│   ├── package.json           # Dependencies
+│   ├── package-lock.json
+│   ├── db.js                  # Database configuration
+│   ├── sensors.db             # SQLite database
+│   ├── jest.config.js         # Jest test configuration
+│   ├── public/                # Static files
+│   │   └── index.html         # Web interface
+│   └── tests/                 # Test files
+│       ├── api.test.js        # Backend API tests
+│       └── e2e.test.js        # End-to-end tests
 └── firmware/                   # Firmware for Pico 2W
     ├── README.md              # Firmware documentation
     ├── platformio.ini
@@ -55,7 +62,7 @@ Node.js server with Express and SQLite database for data storage and web interfa
 ```bash
 cd backend
 npm install
-node index.js
+npm start
 ```
 
 Server will run on `http://localhost:3000`
